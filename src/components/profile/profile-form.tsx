@@ -29,8 +29,8 @@ const profileFormSchema = z.object({
     message: "Goals must be at least 5 characters.",
   }),
   allergies: z.preprocess(
-    (val) => (Array.isArray(val) ? val.join(", ") : String(val)),
-    z.string().transform((val) => val.split(',').map(s => s.trim()).filter(Boolean))
+    (val) => (typeof val === 'string' ? val.split(',').map(s => s.trim()).filter(Boolean) : val),
+    z.array(z.string())
   ),
 });
 
@@ -111,18 +111,26 @@ export function ProfileForm() {
         <FormField
           control={form.control}
           name="allergies"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Allergies</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., Peanuts, Gluten, Shellfish" {...field} />
-              </FormControl>
-              <FormDescription>
-                List any food allergies you have, separated by commas.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            const value = Array.isArray(field.value) ? field.value.join(', ') : field.value;
+            return (
+              <FormItem>
+                <FormLabel>Allergies</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="e.g., Peanuts, Gluten, Shellfish" 
+                    {...field} 
+                    value={value}
+                    onChange={(e) => field.onChange(e.target.value)}
+                  />
+                </FormControl>
+                <FormDescription>
+                  List any food allergies you have, separated by commas.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
         <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90">
             <Save className="mr-2 h-4 w-4" />
